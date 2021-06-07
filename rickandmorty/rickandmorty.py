@@ -1,16 +1,14 @@
 # import packages
-import pandas as pd
 import requests
-from parsons import Redshift, Table, VAN, S3, utilities
-from requests.exceptions import HTTPError
-from pandas.io.json import json_normalize
-import ast
+import pdb
 
 #define paramters
 base_url="https://rickandmortyapi.com/api/"
 character_url=base_url+"character/"
 location_url=base_url+"location/"
 episode_url=base_url+"episode/"
+
+url_list = [character_url, location_url, episode_url]
 
 def get_json(url):
     json_data = requests.get(url).json()
@@ -20,6 +18,13 @@ def get_results(json_blob):
     json_blob["results"]
 
 # read in API call in JSON
+d = {}
+for url in url_list:
+    d["{x}_api".format(url)] = get_json(url)
+
+print(d)
+pdb.set_trace()
+########
 characters_api = get_json(character_url)
 episodes_api = get_json(episode_url)
 locations_api = get_json(location_url)
