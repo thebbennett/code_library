@@ -1,95 +1,90 @@
-# import packages
-import pandas as pd
 import requests
-
-# from parsons import Redshift, Table, VAN, S3, utilities
-from requests.exceptions import HTTPError
-from pandas.io.json import json_normalize
-import ast
+import csv
 
 # define paramters
-base_url = "https://rickandmortyapi.com/api/"
-character_url = base_url + "character/"
-location_url = base_url + "location/"
-episode_url = base_url + "episode/"
+BASE_URL = "https://rickandmortyapi.com/api/"
+TARGET_DIR = "target"
 
 
-def get_json(url):
-    json_data = requests.get(url).json()
-    return json_data
+def get_results(endpoint):
+    """
+    This function hits the API endpoint, gets the whole set of results and exports it as a CSV
+    """
+    print(f"Starting {endpoint} export")
+    url = BASE_URL + endpoint + "/"
+
+    results = []
+    page = 1
+    while True:
+        response = requests.get(url + f"/?page={page}").json()
+
+        results.extend(response.get("results", []))
+        if response.get("info").get("next"):
+            # Rather than inferring the page number, should we instead extract it from the `next` key?
+            page += 1
+        else:
+            break
+    num_results = len(results)
+    print(f"Finished {endpoint} export, got {len(results)} results")
+    return results
 
 
-def get_results(json_blob):
-    json_blob["results"]
+def export_to_csv(array, filename):
+    """
+    Takes an array of dictionaries and writes to a CSV file
+    """
+    keys = array[0].keys()
+    with open(f"{TARGET_DIR}/{endpoint}.csv", "w", newline="") as output_file:
+        dict_writer = csv.DictWriter(output_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(array)
+
+# # convert to data frame
+# character_df = json_normalize(characters)
+# episodes_df = json_normalize(episodes)
+# locations_df = json_normalize(locations)
+# # Clean dataframes
+# character_df["episode_id"] = (
+#     character_df["episode"]
+#     .astype(str)
+#     .str.replace("https://rickandmortyapi.com/api/episode/", "")
+#     .apply(ast.literal_eval)
+# )
+# character_df.rename(columns={"id": "character_id"}, inplace=True)
+
+# locations_df["character_id"] = (
+#     locations_df["residents"]
+#     .astype(str)
+#     .str.replace("https://rickandmortyapi.com/api/character/", "")
+#     .apply(ast.literal_eval)
+# )
+
+# locations_df.rename(columns={"id": "location_id"}, inplace=True)
+# ## episode character lookup
+# character_episode_lookup = character_df[["character_id", "episode_id"]]
+# character_episode_lookup = character_episode_lookup.explode("episode_id").reset_index(
+#     drop=True
+# )
+
+# ## Location / character lookup
+# location_character_lookup = locations_df[["location_id", "character_id"]]
+# character_episode_lookup = character_episode_lookup.explode("character_id").reset_index(
+#     drop=True
+# )
+# # save to CSVS
+# character_df.to_csv("target/rick_and_morty_characters")
+# episodes_df.to_csv("target/rick_and_morty_episodes")
+# locations_df.to_csv("target/rick_and_morty_locations")
+# character_episode_lookup.to_csv("target/character_episode_lookup")
+# location_character_lookup.to_csv("target/location_character_lookup")
 
 
-# read in API call in JSON
-characters_api = get_json(character_url)
-episodes_api = get_json(episode_url)
-locations_api = get_json(location_url)
+if __name__ == "__main__":
+    endpoints = ["character", "location", "episode"]
 
-characters = []
-new_results = True
-page = 1
-while new_results:
-    characters_api = requests.get(character_url + f"/?page={page}").json()
-    new_results = characters_api.get("results", [])
-    characters.extend(new_results)
-    page += 1
+    # TODO: Now that we have CSVs of data, we might need to clean up some of the nested objects
+    for endpoint in endpoints:
+        results = get_results(endpoint)
+        export_to_csv(results, endpoint)
 
-episodes = []
-new_results = True
-page = 1
-while new_results:
-    episodes_api = requests.get(episode_url + f"/?page={page}").json()
-    new_results = episodes_api.get("results", [])
-    episodes.extend(new_results)
-    page += 1
-
-locations = []
-new_results = True
-page = 1
-while new_results:
-    locations_api = requests.get(location_url + f"/?page={page}").json()
-    new_results = locations_api.get("results", [])
-    locations.extend(new_results)
-    page += 1
-
-# convert to data frame
-character_df = json_normalize(characters)
-episodes_df = json_normalize(episodes)
-locations_df = json_normalize(locations)
-# Clean dataframes
-character_df["episode_id"] = (
-    character_df["episode"]
-    .astype(str)
-    .str.replace("https://rickandmortyapi.com/api/episode/", "")
-    .apply(ast.literal_eval)
-)
-character_df.rename(columns={"id": "character_id"}, inplace=True)
-
-locations_df["character_id"] = (
-    locations_df["residents"]
-    .astype(str)
-    .str.replace("https://rickandmortyapi.com/api/character/", "")
-    .apply(ast.literal_eval)
-)
-
-locations_df.rename(columns={"id": "location_id"}, inplace=True)
-## episode character lookup
-character_episode_lookup = character_df[["character_id", "episode_id"]]
-character_episode_lookup = character_episode_lookup.explode("episode_id").reset_index(
-    drop=True
-)
-
-## Location / character lookup
-location_character_lookup = locations_df[["location_id", "character_id"]]
-character_episode_lookup = character_episode_lookup.explode("character_id").reset_index(
-    drop=True
-)
-# save to CSVS
-character_df.to_csv("target/rick_and_morty_characters")
-episodes_df.to_csv("target/rick_and_morty_episodes")
-locations_df.to_csv("target/rick_and_morty_locations")
-character_episode_lookup.to_csv("target/character_episode_lookup")
-location_character_lookup.to_csv("target/location_character_lookup")
+    # TODO: create character_episodes table and character_locations
