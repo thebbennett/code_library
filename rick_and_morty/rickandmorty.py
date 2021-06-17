@@ -88,8 +88,8 @@ character_episode_lookup = character_episode_lookup.explode("character_id").rese
     drop=True
 )
 # save to CSVS
-character_df.to_csv("data/rick_and_morty_characters")
-episodes_df.to_csv("data/rick_and_morty_episodes")
-locations_df.to_csv("data/rick_and_morty_locations")
-character_episode_lookup.to_csv("data/character_episode_lookup")
-location_character_lookup.to_csv("data/location_character_lookup")
+character_df.to_csv("target/rick_and_morty_characters")
+episodes_df.to_csv("target/rick_and_morty_episodes")
+locations_df.to_csv("target/rick_and_morty_locations")
+character_episode_lookup.to_csv("target/character_episode_lookup")
+location_character_lookup.to_csv("target/location_character_lookup")
