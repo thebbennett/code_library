@@ -1,7 +1,7 @@
 # import packages
 import pandas as pd
 import requests
-from parsons import Redshift, Table, VAN, S3, utilities
+# from parsons import Redshift, Table, VAN, S3, utilities
 from requests.exceptions import HTTPError
 from pandas.io.json import json_normalize
 import ast
@@ -14,7 +14,7 @@ episode_url=base_url+"episode/"
 
 def get_json(url):
     json_data = requests.get(url).json()
-    return json_data 
+    return json_data
 
 def get_results(json_blob):
     json_blob["results"]
