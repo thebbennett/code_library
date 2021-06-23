@@ -86,6 +86,7 @@ if __name__ == "__main__":
     # TODO: Now that we have CSVs of data, we might need to clean up some of the nested objects
     for endpoint in endpoints:
         results = get_results(endpoint)
+        print(results)
         export_to_csv(results, endpoint)
 
     # TODO: create character_episodes table and character_locations
