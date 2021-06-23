@@ -20,10 +20,12 @@ def get_results(json_blob):
 # read in API call in JSON
 d = {}
 for url in url_list:
-    d["{x}_api".format(url)] = get_json(url)
+    d["{0}_api".format(url)] = get_json(url)
 
+print("Print dictionary")
 print(d)
 pdb.set_trace()
+print("Should not show")
 ########
 characters_api = get_json(character_url)
 episodes_api = get_json(episode_url)
