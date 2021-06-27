@@ -1,8 +1,8 @@
-# import packages
 import requests
 import csv
+import pdb
 
-# define paramters
+# define paramaters
 BASE_URL = "https://rickandmortyapi.com/api/"
 TARGET_DIR = "target"
 
@@ -35,10 +35,11 @@ def export_to_csv(array, filename):
     Takes an array of dictionaries and writes to a CSV file
     """
     keys = array[0].keys()
-    with open(f"{TARGET_DIR}/{endpoint}.csv", "w", newline="") as output_file:
+    with open(f"{TARGET_DIR}/{filename}.csv", "w", newline="") as output_file:
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(array)
+
 
 # # convert to data frame
 # character_df = json_normalize(characters)
@@ -80,13 +81,51 @@ def export_to_csv(array, filename):
 # location_character_lookup.to_csv("target/location_character_lookup")
 
 
+def extract_id_from_url(url):
+    if url == '':
+        return None
+    else:
+        id = int(url.split("/")[-1])
+        return id
+
+
+
+def character_cleanup(character_api_result):
+    character = character_api_result
+
+    episode_ids = []
+    for episode_url in character["episode"]:
+        episode_id = extract_id_from_url(episode_url)
+        episode_ids.append(episode_id)
+
+    character["episode_ids"] = episode_ids
+
+    character.pop("episode")
+
+    location_id = extract_id_from_url(character["location"]["url"])
+
+    character["location_id"] = location_id
+
+    character.pop("location")
+
+    return character
+
+
 if __name__ == "__main__":
     endpoints = ["character", "location", "episode"]
 
     # TODO: Now that we have CSVs of data, we might need to clean up some of the nested objects
-    for endpoint in endpoints:
-        results = get_results(endpoint)
-        print(results)
-        export_to_csv(results, endpoint)
+    # for endpoint in endpoints:
+    #     results = get_results(endpoint)
+    #     export_to_csv(results, endpoint)
+
+    # characters
+    characters_api_results = get_results("character")
+    characters = []
+    for character_api_result in characters_api_results:
+        character = character_cleanup(character_api_result)
+        characters.append(character)
+
+    export_to_csv(characters, "characters")
 
     # TODO: create character_episodes table and character_locations
